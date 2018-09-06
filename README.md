@@ -8,7 +8,7 @@ These instructions will get you a copy of the project up and running on your loc
 
 ### Prerequisites
 
-On a GNU/Linux Debian Stretch machine install 
+On a GNU/Linux Debian Stretch machine install
 
 * python 2.7
 * gnuradio
@@ -22,7 +22,7 @@ sudo apt-get install python gnuradio
 ### Installing
 
 Clone git repository on your machine.
-On a console run
+On a console run:
 
 ```
 git clone https://github.com/fedjo/orca.git
