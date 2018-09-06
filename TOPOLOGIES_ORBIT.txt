@@ -1,0 +1,31 @@
+In: console.sb4.orbit-lab.org
+Verify: http://www.orbit-lab.org/status/sb4
+
+SELECT USRP FOR NODES 1-3, 1-4, 1-5, 1-6
+======================================================================
+
+curl "internal2dmz.orbit-lab.org:5054/instr/selDevice?switch=1&port=2"
+curl "internal2dmz.orbit-lab.org:5054/instr/selDevice?switch=2&port=2"
+curl "internal2dmz.orbit-lab.org:5054/instr/selDevice?switch=3&port=2"
+curl "internal2dmz.orbit-lab.org:5054/instr/selDevice?switch=4&port=2"
+
+LINE TOPOLOGY
+========================================================================================
+wget -O status http://internal2dmz.orbit-lab.org:5054/instr/load?name=3-pan
+
+wget -O status http://internal2dmz.orbit-lab.org:5054/instr/set?portA=4\&portB=5\&att=0
+wget -O status http://internal2dmz.orbit-lab.org:5054/instr/set?portA=5\&portB=6\&att=0
+wget -O status http://internal2dmz.orbit-lab.org:5054/instr/set?portA=1\&portB=2\&att=63
+wget -O status http://internal2dmz.orbit-lab.org:5054/instr/set?portA=2\&portB=4\&att=63
+wget -O status http://internal2dmz.orbit-lab.org:5054/instr/set?portA=2\&portB=3\&att=63
+
+GRID TOPOLOGY
+========================================================================================
+wget -O status http://internal2dmz.orbit-lab.org:5054/instr/load?name=3-pan
+
+wget -O status http://internal2dmz.orbit-lab.org:5054/instr/set?portA=1\&portB=2\&att=63
+wget -O status http://internal2dmz.orbit-lab.org:5054/instr/set?portA=2\&portB=3\&att=63
+wget -O status http://internal2dmz.orbit-lab.org:5054/instr/set?portA=2\&portB=4\&att=63
+wget -O status http://internal2dmz.orbit-lab.org:5054/instr/set?portA=3\&portB=6\&att=0
+wget -O status http://internal2dmz.orbit-lab.org:5054/instr/set?portA=4\&portB=5\&att=0
+wget -O status http://internal2dmz.orbit-lab.org:5054/instr/set?portA=5\&portB=6\&att=0
