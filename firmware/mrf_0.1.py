@@ -5,31 +5,29 @@ from argparse import ArgumentParser
 
 from gnuradio import gr
 
-from sense.channel_energy import orig_single_channel
+from sense.spectrum_sense import spectrum_sense
 from comm.tx import tx_path
 from comm.rx import rx_path
 
 
 class infrastructure(gr.top_block):
-    # def __init__(self, channel_bandwidth, min_freq, max_freq, s_samp_rate,
-    #              tune_delay, dwell_delay, s_gain, c_samp_rate, c_gain, freq, code1, code2):
     def __init__(self, samp_rate, freq, bandwidth, code1, code2):
-        gr.top_block.__init__(self)
+        gr.top_block.__init__(self, "Infrastructure")
 
-	##################################################
+	    ##################################################
         # Variables
         ##################################################
         self.samp_rate = samp_rate
         self.freq = freq
-	self.bandwidth = bandwidth
-	self.code1 = code1
-	self.code2 = code2
+	    self.bandwidth = bandwidth
+	    self.code1 = code1
+	    self.code2 = code2
 
         ##################################################
         # Blocks
-        ##################################################	
+        ##################################################
 
-        self.sensepath = orig_single_channel(freq, bandwidth)
+        self.sensepath = spectrum_sense(samp_rate, freq, bandwidth)
         #txpath = tx_path(samp_rate, freq, code2)
         self.rxpath = rx_path(samp_rate, freq, code1)
 
@@ -128,25 +126,17 @@ if __name__ == '__main__':
         _a = input("Please choose which functionality to excecute\n"
                    "sensing/transmit/receive/quit)\n s/t/r/q?")
 
-        if _a == 's':
-            infra.start()
-            sense_queue = infra.get_msg_sink_queue()
-            while 1:
-                if sense_queue.count():
-                    pkt = sense_queue.delete_head().to_string()
-                    print("Number of items in queue: {}".format(sense_queue.count()))
-                    print("Found value: {}".format(pkt))
-                _s = raw_input("Press q to break")
-                if _s == 'q':
-                    break
-        elif _a == 't':
-            infra.start()
-        elif _a == 'r':
-            infra.start()
-        elif _a == 'q':
+        infra.start()
+        sense_queue = infra.get_msg_sink_queue()
+        while 1:
+            if sense_queue.count():
+                pkt = sense_queue.delete_head().to_string()
+                print("Number of items in queue: {}".format(sense_queue.count()))
+                print("Found value: {}".format(pkt))
+            _s = raw_input("Press q to break")
+            if _s == 'q':
+                break
+        if _a == 'q':
             infra.stop()
-	    infra.wait()
-	    break
-        else:
-            break
-            continue
+	        infra.wait()
+	        break
