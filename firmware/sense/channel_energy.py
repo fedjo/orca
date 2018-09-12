@@ -21,7 +21,7 @@ import sys
 #import transmit_busy_tone as busy
 
 
-class orig_single_channel(gr.top_block):
+class orig_single_channel(gr.hier_block2):
 
     def __init__(self,c_freq, bandwidth):
         # gr.top_block.__init__(self, "Orig Single Channel")
@@ -32,14 +32,17 @@ class orig_single_channel(gr.top_block):
         ##################################################
         # Variables
         ##################################################
-        self.samp_rate = samp_rate = 64000
+        self.samp_rate = samp_rate = 500000
         self.c_freq = c_freq
         self.bandwidth = bandwidth
 
+
+
+	print("Rate: {}, Freq: {}, Band: {}".format(samp_rate, c_freq,bandwidth))
         ##################################################
         # Message Queues
         ##################################################
-        self.sink_queue = gr.msg_queue()
+        self.sink_queue = gr.msg_queue(2)
 
         ##################################################
         # Blocks
@@ -59,17 +62,17 @@ class orig_single_channel(gr.top_block):
         self.blocks_vector_to_stream_0 = blocks.vector_to_stream(gr.sizeof_gr_complex*1, 1024)
         self.blocks_stream_to_vector_0 = blocks.stream_to_vector(gr.sizeof_gr_complex*1, 1024)
         self.blocks_nlog10_ff_0 = blocks.nlog10_ff(10, 1, 0)
-        #self.blocks_file_sink_0 = blocks.file_sink(gr.sizeof_float*1, 'output.txt', False)
-        #self.blocks_file_sink_0.set_unbuffered(False)
-        self.blocks_message_sink_0 = blocks.message_sink(gr.sizeof_float*1, self.sink_queue, True)
+        self.blocks_file_sink_0 = blocks.file_sink(gr.sizeof_float*1, 'output.txt', False)
+        self.blocks_file_sink_0.set_unbuffered(False)
+        #self.blocks_message_sink_0 = blocks.message_sink(gr.sizeof_float*1, self.sink_queue, True)
         self.blocks_complex_to_mag_squared_0 = blocks.complex_to_mag_squared(1)
 
         ##################################################
         # Connections
         ##################################################
         self.connect((self.blocks_complex_to_mag_squared_0, 0), (self.blocks_nlog10_ff_0, 0))
-        #self.connect((self.blocks_nlog10_ff_0, 0), (self.blocks_file_sink_0, 0))
-        self.connect((self.blocks_nlog10_ff_0, 0), (self.blocks_message_sink_0, 0))
+        self.connect((self.blocks_nlog10_ff_0, 0), (self.blocks_file_sink_0, 0))
+        #self.connect((self.blocks_nlog10_ff_0, 0), (self.blocks_message_sink_0, 0))
         self.connect((self.blocks_stream_to_vector_0, 0), (self.fft_vxx_0, 0))
         self.connect((self.blocks_vector_to_stream_0, 0), (self.blocks_complex_to_mag_squared_0, 0))
         self.connect((self.fft_vxx_0, 0), (self.blocks_vector_to_stream_0, 0))

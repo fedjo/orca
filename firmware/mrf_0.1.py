@@ -13,34 +13,48 @@ from comm.rx import rx_path
 class infrastructure(gr.top_block):
     # def __init__(self, channel_bandwidth, min_freq, max_freq, s_samp_rate,
     #              tune_delay, dwell_delay, s_gain, c_samp_rate, c_gain, freq, code1, code2):
-    def __init__(self):
+    def __init__(self, samp_rate, freq, bandwidth, code1, code2):
         gr.top_block.__init__(self)
-        self.ss = None
-        self.tx = None
-        self.rx = None
+
+	##################################################
+        # Variables
+        ##################################################
+        self.samp_rate = samp_rate
+        self.freq = freq
+	self.bandwidth = bandwidth
+	self.code1 = code1
+	self.code2 = code2
+
+        ##################################################
+        # Blocks
+        ##################################################	
+
+        self.sensepath = orig_single_channel(freq, bandwidth)
+        #txpath = tx_path(samp_rate, freq, code2)
+        self.rxpath = rx_path(samp_rate, freq, code1)
 
 
     def get_msg_sink_queue(self):
-        if self.ss:
-            return self.ss.sink_queue
+        if self.sensepath:
+            return self.sensepath.sink_queue
 
     def get_ss(self):
-        return self.ss
+        return self.sensepath
 
-    def set_ss(self, ss):
-        self.ss = ss
+    def set_ss(self, sensepath):
+        self.sensepath = sensepath
 
     def get_tx(self):
-        return self.tx
+        return self.txpath
 
-    def set_tx(self, tx):
-        self.tx = tx
+    def set_tx(self, txpath):
+        self.txpath = txpath
 
     def get_rx(self):
-        return self.rx
+        return self.rxpath
 
-    def set_rx(self, rx):
-        self.rx = rx
+    def set_rx(self, rxpath):
+        self.rxpath = rxpath
 
 
 def args_parse():
@@ -108,19 +122,13 @@ if __name__ == '__main__':
     sensing = lambda p: config.get('SENSING', p)
     comm = lambda p: config.get('COMMUNICATION', p)
 
-    infra = infrastructure()
+    infra = infrastructure(int(comm('c_samp_rate')), float(general('freq')), float(general('bandwidth')), comm('code1'), comm('code2'))
 
     while 1:
         _a = input("Please choose which functionality to excecute\n"
                    "sensing/transmit/receive/quit)\n s/t/r/q?")
 
         if _a == 's':
-            #sensepath = sense_path(float(sensing('channel_bandwidth')), float(min_freq), float(max_freq),
-            #                       int(sensing('s_samp_rate')), float(sensing('tune_delay')),
-            #                       float(sensing('dwell_delay')), int(sensing('s_gain')))
-            sensepath = orig_single_channel(float(general('freq')), float(general('bandwidth')))
-            # infra.connect(sense_path)
-            infra.set_ss(sensepath)
             infra.start()
             sense_queue = infra.get_msg_sink_queue()
             while 1:
@@ -128,19 +136,17 @@ if __name__ == '__main__':
                     pkt = sense_queue.delete_head().to_string()
                     print("Number of items in queue: {}".format(sense_queue.count()))
                     print("Found value: {}".format(pkt))
-                    _s = raw_input("Press q to break")
-                    if _s == 'q':
-                        break
+                _s = raw_input("Press q to break")
+                if _s == 'q':
+                    break
         elif _a == 't':
-            txpath = tx_path(int(comm('c_samp_rate')), int(comm('c_gain')), float(comm('freq')), comm('code1'), comm('code2'))
-            # infra.connect(tx_path)
-            infra.set_tx(txpath)
+            infra.start()
         elif _a == 'r':
-            rxpath = rx_path(int(comm('c_samp_rate')), int(comm('c_gain')), float(comm('freq')), comm('code1'), comm('code2'))
-            # infra.connect(rx_path)
-            infra.set_rx(rxpath)
+            infra.start()
         elif _a == 'q':
             infra.stop()
+	    infra.wait()
+	    break
         else:
             break
             continue
