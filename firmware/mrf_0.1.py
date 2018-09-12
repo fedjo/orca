@@ -19,9 +19,9 @@ class infrastructure(gr.top_block):
         ##################################################
         self.samp_rate = samp_rate
         self.freq = freq
-	    self.bandwidth = bandwidth
-	    self.code1 = code1
-	    self.code2 = code2
+        self.bandwidth = bandwidth
+        self.code1 = code1
+        self.code2 = code2
 
         ##################################################
         # Blocks
@@ -128,15 +128,9 @@ if __name__ == '__main__':
 
         infra.start()
         sense_queue = infra.get_msg_sink_queue()
-        while 1:
-            if sense_queue.count():
-                pkt = sense_queue.delete_head().to_string()
-                print("Number of items in queue: {}".format(sense_queue.count()))
-                print("Found value: {}".format(pkt))
-            _s = raw_input("Press q to break")
-            if _s == 'q':
-                break
-        if _a == 'q':
-            infra.stop()
-	        infra.wait()
-	        break
+        try:
+            raw_input("Press Enter to quit")
+        except EOFError:
+            pass
+        infra.stop()
+        infra.wait()
