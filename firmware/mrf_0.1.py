@@ -104,15 +104,10 @@ if __name__ == '__main__':
 
     config =  ConfigParser.ConfigParser()
     config.read('config.ini')
+    general = lambda p: config.get('GENERAL', p)
     sensing = lambda p: config.get('SENSING', p)
     comm = lambda p: config.get('COMMUNICATION', p)
 
-    min_freq = config.get('SENSING', 'freq_range').split()[0][2:-2].split(',')[0]
-    max_freq = config.get('SENSING', 'freq_range').split()[0][2:-2].split(',')[1]
-    print("Min freq: {}, Max freq: {}".format(min_freq, max_freq))
-    # infra = infrastructure(args.channel_bandwidth, min_freq, max_freq, args.s_samp_rate,
-    #     args.tune_delay, args.dwell_delay, args.s_gain, args.c_samp_rate, args.c_gain,
-    #     args.freq, code1, code2)
     infra = infrastructure()
 
     while 1:
@@ -123,15 +118,19 @@ if __name__ == '__main__':
             #sensepath = sense_path(float(sensing('channel_bandwidth')), float(min_freq), float(max_freq),
             #                       int(sensing('s_samp_rate')), float(sensing('tune_delay')),
             #                       float(sensing('dwell_delay')), int(sensing('s_gain')))
-            sensepath = orig_single_channel(float(comm('freq')), float(sensing('channel_bandwidth'))
+            sensepath = orig_single_channel(float(general('freq')), float(general('bandwidth')))
             # infra.connect(sense_path)
             infra.set_ss(sensepath)
             infra.start()
             sense_queue = infra.get_msg_sink_queue()
-            if sense_queue.count():
-                pkt = sense_queue.delete_head().to_string()
-                print("Number of items in queue: {}".format(sense_queue.count()))
-                print("Found value: {}".format(pkt))
+            while 1:
+                if sense_queue.count():
+                    pkt = sense_queue.delete_head().to_string()
+                    print("Number of items in queue: {}".format(sense_queue.count()))
+                    print("Found value: {}".format(pkt))
+                    _s = raw_input("Press q to break")
+                    if _s == 'q':
+                        break
         elif _a == 't':
             txpath = tx_path(int(comm('c_samp_rate')), int(comm('c_gain')), float(comm('freq')), comm('code1'), comm('code2'))
             # infra.connect(tx_path)

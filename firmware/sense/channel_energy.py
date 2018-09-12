@@ -17,8 +17,8 @@ from gnuradio.filter import firdes
 from optparse import OptionParser
 import time
 import sys
-import avg
-import transmit_busy_tone as busy
+#import avg
+#import transmit_busy_tone as busy
 
 
 class orig_single_channel(gr.top_block):
@@ -39,7 +39,7 @@ class orig_single_channel(gr.top_block):
         ##################################################
         # Message Queues
         ##################################################
-        self.sink_queue = gr.msg_queue(2)
+        self.sink_queue = gr.msg_queue()
 
         ##################################################
         # Blocks
@@ -95,18 +95,3 @@ class orig_single_channel(gr.top_block):
     def set_bandwidth(self, bandwidth):
         self.bandwidth = bandwidth
         self.uhd_usrp_source_0.set_bandwidth(self.bandwidth, 0)
-
-
-def calc_energy(c_freq, bandwidth, top_block_cls=orig_single_channel, options=None):
-    tb = top_block_cls(c_freq, bandwidth)
-    tb.start()
-    try:
-        raw_input('Press Enter to quit: ')
-    except EOFError:
-        pass
-    tb.stop()
-    tb.wait()
-    mean = avg.find_average("output.txt")
-    return mean
-
-
