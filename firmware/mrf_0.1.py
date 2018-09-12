@@ -31,6 +31,7 @@ class infrastructure(gr.top_block):
         #txpath = tx_path(samp_rate, freq, code2)
         self.rxpath = rx_path(samp_rate, freq, code1)
 
+        self.connect(self.sensepath)
 
     def get_msg_sink_queue(self):
         if self.sensepath:
@@ -99,6 +100,17 @@ def args_parse():
     return parser.parse_args()
 
 
+def find_average(vector):
+    avg = []
+	n = int(len(vector)/1024)
+
+	for i in range(0, n):
+		avg.append(sum(vector[i*1024:i*1024+1024])/1024)
+
+	#print avg
+	return sum(avg)/len(avg)
+
+
 if __name__ == '__main__':
 
     # args = args_parse()
@@ -125,6 +137,13 @@ if __name__ == '__main__':
     infra.start()
     sense_queue = infra.get_msg_sink_queue()
     try:
+        while 1:
+            if sense_queue.count:
+            pkt = sense_queue.delete_head().to_string()
+            v = scipy.fromstring(pkt, dtype=scipy.float32)
+            print(v)
+            print(find_average(v))
+
         raw_input("Press Enter to quit")
     except EOFError:
         pass
