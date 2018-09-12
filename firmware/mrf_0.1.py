@@ -122,15 +122,11 @@ if __name__ == '__main__':
 
     infra = infrastructure(int(comm('c_samp_rate')), float(general('freq')), float(general('bandwidth')), comm('code1'), comm('code2'))
 
-    while 1:
-        _a = input("Please choose which functionality to excecute\n"
-                   "sensing/transmit/receive/quit)\n s/t/r/q?")
-
-        infra.start()
-        sense_queue = infra.get_msg_sink_queue()
-        try:
-            raw_input("Press Enter to quit")
-        except EOFError:
-            pass
-        infra.stop()
-        infra.wait()
+    infra.start()
+    sense_queue = infra.get_msg_sink_queue()
+    try:
+        raw_input("Press Enter to quit")
+    except EOFError:
+        pass
+    infra.stop()
+    infra.wait()

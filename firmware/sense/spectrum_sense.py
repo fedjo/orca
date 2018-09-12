@@ -30,7 +30,7 @@ class spectrum_sense(gr.hier_block2):
         self.freq = freq = 800e6
         self.bandwidth = bandwidth = 10e6
 
-        print("Rate: {}, Freq: {}, Band: {}".format(samp_rate, c_freq,bandwidth))
+        print("Rate: {}, Freq: {}, Band: {}".format(samp_rate, freq,bandwidth))
         ##################################################
         # Message Queues
         ##################################################
