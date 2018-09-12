@@ -1,28 +1,46 @@
 import os
 import sys
+import ConfigParser
 from argparse import ArgumentParser
+
 from gnuradio import gr
 
-
-from sense.spectrum_sense import sense, sense_path
+from sense.channel_energy import orig_single_channel
 from comm.tx import tx_path
 from comm.rx import rx_path
 
 
 class infrastructure(gr.top_block):
-    def __init__(self, channel_bandwidth, min_freq, max_freq, s_samp_rate,
-                 tune_delay, dwell_delay, s_gain, c_samp_rate, c_gain, freq, code1, code2):
+    # def __init__(self, channel_bandwidth, min_freq, max_freq, s_samp_rate,
+    #              tune_delay, dwell_delay, s_gain, c_samp_rate, c_gain, freq, code1, code2):
+    def __init__(self):
         gr.top_block.__init__(self)
+        self.ss = None
+        self.tx = None
+        self.rx = None
 
 
-        sensepath = sense_path(channel_bandwidth, min_freq, max_freq, s_samp_rate,
-                                tune_delay, dwell_delay, s_gain)
-        txpath = tx_path(c_samp_rate, c_gain, freq, code1, code2)
-        rxpath = rx_path(c_samp_rate, c_gain, freq, code1, code2)
+    def get_msg_sink_queue(self):
+        if self.ss:
+            return self.ss.sink_queue
 
-        self.connect(sense_path)
-        self.connect(tx_path)
-        self.connect(rx_path)
+    def get_ss(self):
+        return self.ss
+
+    def set_ss(self, ss):
+        self.ss = ss
+
+    def get_tx(self):
+        return self.tx
+
+    def set_tx(self, tx):
+        self.tx = tx
+
+    def get_rx(self):
+        return self.rx
+
+    def set_rx(self, rx):
+        self.rx = rx
 
 
 def args_parse():
@@ -71,46 +89,59 @@ def args_parse():
 
 if __name__ == '__main__':
 
-    channels = [ [499100000,500100000], [599100000,600100000] ]
-    code1 = '010110011011101100010101011111101001001110001011010001101010001'
-    code2 = '11011010110111011000110011110101100010010011110111'
-    a = [1]*len(channels)
+    # args = args_parse()
 
-    args = args_parse()
+    # if not args.real_time:
+    #     realtime = False
+    # else:
+    #    # Attempt to enable realtime scheduling
+    #    r = gr.enable_realtime_scheduling()
+    #    if r == gr.RT_OK:
+    #        realtime = True
+    #    else:
+    #        realtime = False
+    #        print "Note: failed to enable realtime scheduling"
 
-    if not args.real_time:
-        realtime = False
-    else:
-        # Attempt to enable realtime scheduling
-        r = gr.enable_realtime_scheduling()
-        if r == gr.RT_OK:
-            realtime = True
+    config =  ConfigParser.ConfigParser()
+    config.read('config.ini')
+    sensing = lambda p: config.get('SENSING', p)
+    comm = lambda p: config.get('COMMUNICATION', p)
+
+    min_freq = config.get('SENSING', 'freq_range').split()[0][2:-2].split(',')[0]
+    max_freq = config.get('SENSING', 'freq_range').split()[0][2:-2].split(',')[1]
+    print("Min freq: {}, Max freq: {}".format(min_freq, max_freq))
+    # infra = infrastructure(args.channel_bandwidth, min_freq, max_freq, args.s_samp_rate,
+    #     args.tune_delay, args.dwell_delay, args.s_gain, args.c_samp_rate, args.c_gain,
+    #     args.freq, code1, code2)
+    infra = infrastructure()
+
+    while 1:
+        _a = input("Please choose which functionality to excecute\n"
+                   "sensing/transmit/receive/quit)\n s/t/r/q?")
+
+        if _a == 's':
+            #sensepath = sense_path(float(sensing('channel_bandwidth')), float(min_freq), float(max_freq),
+            #                       int(sensing('s_samp_rate')), float(sensing('tune_delay')),
+            #                       float(sensing('dwell_delay')), int(sensing('s_gain')))
+            sensepath = orig_single_channel(float(comm('freq')), float(sensing('channel_bandwidth'))
+            # infra.connect(sense_path)
+            infra.set_ss(sensepath)
+            infra.start()
+            sense_queue = infra.get_msg_sink_queue()
+            if sense_queue.count():
+                pkt = sense_queue.delete_head().to_string()
+                print("Number of items in queue: {}".format(sense_queue.count()))
+                print("Found value: {}".format(pkt))
+        elif _a == 't':
+            txpath = tx_path(int(comm('c_samp_rate')), int(comm('c_gain')), float(comm('freq')), comm('code1'), comm('code2'))
+            # infra.connect(tx_path)
+            infra.set_tx(txpath)
+        elif _a == 'r':
+            rxpath = rx_path(int(comm('c_samp_rate')), int(comm('c_gain')), float(comm('freq')), comm('code1'), comm('code2'))
+            # infra.connect(rx_path)
+            infra.set_rx(rxpath)
+        elif _a == 'q':
+            infra.stop()
         else:
-            realtime = False
-            print "Note: failed to enable realtime scheduling"
-
-
-    min_freq = 0
-    max_freq = 5
-    infra = infrastructure(args.channel_bandwidth, min_freq, max_freq, args.s_samp_rate,
-        args.tune_delay, args.dwell_delay, args.s_gain, args.c_samp_rate, args.c_gain,
-        args.freq, code1, code2)
-    infra.strart()
-
-
-
-    for i in range(0, len(channels)):
-        start_freq = channels[i][0]
-        finish_freq = channels[i][1]
-        rate = 500000
-        gain = 80
-        sp = sense_path(6.25e3, start, finish, rate, 0.25, 0.25,gain)
-        try:
-            sp.start()
-            if(sense(sp)):
-                a[i] = 0
-            print(a[i])
-        except KeyboardInterrupt:
-            pass
-        finally:
-            sp.stop()
+            break
+            continue
