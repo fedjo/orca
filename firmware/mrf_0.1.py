@@ -158,7 +158,9 @@ if __name__ == '__main__':
         # Detection of Primary Users
         infra.start_detect_pu()
         for ch in channel_list:
+            infra.detect_pu.lock()
             infra.detect_pu.uhd_usrp_source_0.set_center_freq(ch, 0)
+            infra.detect_pu.unlock()
             # Scan for PUs
             if detect_pu_queue.count():
                 val = detect_pu_queue.delete_head().to_string()

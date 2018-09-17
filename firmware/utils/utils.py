@@ -51,7 +51,7 @@ def is_empty(avg):
 
 
 def detect_collision(avg, c_freq, threshold, b_freq):
-	if (avg<-43):
+    if (avg<-43):
         print "EMPTY CHANNEL"
         return 0
     elif (avg>treshold-1) and (avg<threshold+1):
