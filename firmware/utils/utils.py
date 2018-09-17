@@ -52,15 +52,15 @@ def is_empty(avg):
 
 def detect_collision(avg, c_freq, threshold, b_freq):
 	if (avg<-43):
-    	print "EMPTY CHANNEL"
-		return 0
-	elif (avg>treshold-1) and (avg<threshold+1):
-   		print "NO COLLISIONS"
-		return 1
+        print "EMPTY CHANNEL"
+        return 0
+    elif (avg>treshold-1) and (avg<threshold+1):
+        print "NO COLLISIONS"
+        return 1
     else:
-    	print "COLLISION"
-    	#busy.transmit_busy(b_freq)
-    	return 2
+        print "COLLISION"
+        #busy.transmit_busy(b_freq)
+        return 2
 
 
 def cost(u_vector, busy_tone_channels, penalty, prize):

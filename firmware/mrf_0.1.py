@@ -166,6 +166,7 @@ if __name__ == '__main__':
                 print(av)
                 a[i] = av
             i += 1
+        infra.disconnect_all()
         infra.stop()
         infra.wait()
         print("Print availability vector: a = {}".format(a))
@@ -185,6 +186,7 @@ if __name__ == '__main__':
                     #transmissions.transmit_busy_tone(busy_tone_channels[i], bandwidth)
                     pass
             i += 1
+        infra.disconnect_all()
         infra.stop()
         infra.wait()
 
