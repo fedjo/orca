@@ -31,10 +31,10 @@ class detect_pu(gr.hier_block2):
         ##################################################
         # Variables
         ##################################################
-        self.samp_rate = samp_rate = 64000
+        self.samp_rate = samp_rate
         self.code1 = code1 = '010110011011101100010101011111101001001110001011010001101010001'
         self.freq = freq
-        self.bandwidth = bandwidth = 10e6
+        self.bandwidth = bandwidth
 
 
         print("Rate: {}, Freq: {}, Band: {}".format(samp_rate, freq,bandwidth))
@@ -70,7 +70,7 @@ class detect_pu(gr.hier_block2):
         )
         # self.blocks_file_sink_0 = blocks.file_sink(gr.sizeof_char*1, fname, False)
         # self.blocks_file_sink_0.set_unbuffered(True)
-        self.blocks_message_sink_0 = blocks.message_sink(gr.sizeof_float*1, self.sink_queue, True)
+        self.blocks_message_sink_0 = blocks.message_sink(gr.sizeof_char*1, self.sink_queue, True)
         self.blks2_packet_decoder_0 = grc_blks2.packet_demod_b(grc_blks2.packet_decoder(
         		access_code=code1,
         		threshold=-1,

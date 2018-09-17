@@ -36,13 +36,13 @@ class infrastructure(gr.top_block):
         self.rxpath = rx_path(samp_rate, freq, code1)
 
 
-    def start_detect_pu():
-        self.connect(detect_pu)
-        gr.top_block.start()
+    def start_detect_pu(self):
+        self.connect(self.detect_pu)
+        gr.top_block.start(self)
 
-    def start_sense():
+    def start_sense(self):
         self.connect(self.sensepath)
-        gr.top_block.start()
+        gr.top_block.start(self)
 
     def get_sensepath_sink_queue(self):
         if self.sensepath:
@@ -78,7 +78,7 @@ def args_parse():
     # Missing setting min_freq/max_freq
     # Probably this should be read from a conf file as whole parameters
     general_args = parser.add_argument_group('General Arguments', '')
-    general_args.add_argument("-c", "--config" type=str, default="config.ini",
+    general_args.add_argument("-c", "--config", type=str, default="config.ini",
                             help="Specify the configuration file [default=%(default)s]")
     general_args.add_argument("-a", "--args", type=str, default="",
                             help="UHD device device address args [default=%(default)s]")
@@ -139,52 +139,54 @@ if __name__ == '__main__':
     sense_queue = infra.get_sensepath_sink_queue()
     detect_pu_queue = infra.get_detectpu_sink_queue()
 
-    print("The specified channels are: {}".format(channel_list))
     channel_list = [600e6, 825e6, 1.2e9, 2.4e9]
-	busy_tone_channels = [520e6,540e6,560e6,580e6]
-	thresholds = [-16,-18,-19,-30]
+    print("The specified channels are: {}".format(channel_list))
+    busy_tone_channels = [520e6,540e6,560e6,580e6]
+    thresholds = [-16,-18,-19,-30]
 
     u = [0]*len(channel_list)
-    u_vectors = [ [0]*len(channel_list) ] * (general(nodes_no)-1)
+    u_vectors = [ [0]*len(channel_list) ] * (int(general('nodes_no'))-1)
     print("U = {}".format(u))
+    print("U vector of others = {}".format(u_vectors))
 
     # Calculate a = []
     a = [0]*len(channel_list)
     print("A = {}".format(a))
     i = 0
 
-    # Detection of Primary Users
-    infra.start_detect_pu()
-    for ch in channel_list:
-        infra.detect_pu.uhd_usrp_source_0.set_center_freq(ch, 0)
-        # Scan for PUs
-        if detect_pu_queue.count():
-            val = detect_pu_queue.delete_head().to_string()
-            av = scipy.fromstring(val, dtype=scipy.float32)
-            print(av)
-            a[i] = av
-        i += 1
-    infra.stop()
-    infra.wait()
-    print("Print availability vector: a = {}".format(a))
+    while 1:
+        # Detection of Primary Users
+        infra.start_detect_pu()
+        for ch in channel_list:
+            infra.detect_pu.uhd_usrp_source_0.set_center_freq(ch, 0)
+            # Scan for PUs
+            if detect_pu_queue.count():
+                val = detect_pu_queue.delete_head().to_string()
+                av = scipy.fromstring(val, dtype=scipy.float32)
+                print(av)
+                a[i] = av
+            i += 1
+        infra.stop()
+        infra.wait()
+        print("Print availability vector: a = {}".format(a))
 
-    # Sensing & Collision detection
-    i = 0
-    infra.start_sense()
-    for ch in channel_list:
-        # Scan energy for collision detection
-        if sense_queue.count():
-            val2 = sense_queue.delete_head().to_string()
-            db_vector = scipy.fromstring(val, dtype=scipy.float32)
-            mean_db = calc_mean_energy(db_vector)
-            channel_state = utils.detect_collision(mean_db, channel_list[i], threshold[i], busy_tone_channels[i])
-            if (channel_state==2):
-                print("Busy Tone")
-                #transmissions.transmit_busy_tone(busy_tone_channels[i], bandwidth)
-                pass
-        i += 1
-    infra.stop()
-    infra.wait()
+        # Sensing & Collision detection
+        i = 0
+        infra.start_sense()
+        for ch in channel_list:
+            # Scan energy for collision detection
+            if sense_queue.count():
+                val2 = sense_queue.delete_head().to_string()
+                db_vector = scipy.fromstring(val, dtype=scipy.float32)
+                mean_db = calc_mean_energy(db_vector)
+                channel_state = utils.detect_collision(mean_db, channel_list[i], threshold[i], busy_tone_channels[i])
+                if (channel_state==2):
+                    print("Busy Tone")
+                    #transmissions.transmit_busy_tone(busy_tone_channels[i], bandwidth)
+                    pass
+            i += 1
+        infra.stop()
+        infra.wait()
 
 
 

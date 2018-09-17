@@ -6,13 +6,13 @@ from operator import add
 
 def calc_mean_energy(vector):
     avg = []
-	n = int(len(vector)/1024)
+    n = int(len(vector)/1024)
 
-	for i in range(0, n):
-		avg.append(sum(vector[i*1024:i*1024+1024])/1024)
+    for i in range(0, n):
+        avg.append(sum(vector[i*1024:i*1024+1024])/1024)
 
-	#print avg
-	return sum(avg)/len(avg)
+    #print avg
+    return sum(avg)/len(avg)
 
 
 def availability(channels, bandwidth, vector):
@@ -43,11 +43,11 @@ def calc_vectorN(neighborsU):
 
 
 def is_empty(avg):
-	if (avg<-43):
-    	print "EMPTY CHANNEL"
-		return 0
-	else:
-		return 1
+    if (avg<-43):
+        print "EMPTY CHANNEL"
+        return 0
+    else:
+        return 1
 
 
 def detect_collision(avg, c_freq, threshold, b_freq):
