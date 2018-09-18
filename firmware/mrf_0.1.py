@@ -1,5 +1,7 @@
 import os
 import sys
+import time
+import pmt
 import ConfigParser
 from argparse import ArgumentParser
 
@@ -33,7 +35,7 @@ class infrastructure(gr.top_block):
         self.sensepath = spectrum_sense(samp_rate, freq, bandwidth)
         self.detect_pu = detect_pu(freq, bandwidth, samp_rate, code1)
         #txpath = tx_path(samp_rate, freq, code2)
-        self.rxpath = rx_path(samp_rate, freq, code1)
+        #self.rxpath = rx_path(samp_rate, freq, code1)
 
 
     def start_detect_pu(self):
@@ -152,46 +154,54 @@ if __name__ == '__main__':
     # Calculate a = []
     a = [0]*len(channel_list)
     print("A = {}".format(a))
-    i = 0
 
+    port = pmt.intern("command")
+    infra.start_detect_pu()
+    command = pmt.cons(pmt.intern("freq"), pmt.to_pmt(825e6))
+    #infra.detect_pu.uhd_usrp_source_0.to_basic_block()._post(port, command)
+    infra.detect_pu.uhd_usrp_source_0.set_center_freq(825e6, 0)
     while 1:
+    	i = 0
         # Detection of Primary Users
-        infra.start_detect_pu()
+        #infra.start_detect_pu()
         for ch in channel_list:
-            infra.detect_pu.lock()
-            infra.detect_pu.uhd_usrp_source_0.set_center_freq(ch, 0)
-            infra.detect_pu.unlock()
+	    detect_pu_queue.flush()
+	    command = pmt.cons(pmt.intern("freq"), pmt.to_pmt(ch))
+            infra.detect_pu.uhd_usrp_source_0.to_basic_block()._post(port, command)
+            #infra.detect_pu.uhd_usrp_source_0.set_center_freq(ch, 0)
+	    time.sleep(0.2)
+	    usrp_freq = infra.detect_pu.uhd_usrp_source_0.get_center_freq()
+	    print("USRP in freq: {}".format(usrp_freq))
             # Scan for PUs
             if detect_pu_queue.count():
+		print("Queue has total of {} items".format(detect_pu_queue.count()))
                 val = detect_pu_queue.delete_head().to_string()
-                av = scipy.fromstring(val, dtype=scipy.float32)
-                print(av)
-                a[i] = av
+		print("Queue in channel: {} has {}".format(usrp_freq, val))
+		if val:
+                    a[i] = 1
             i += 1
-        infra.disconnect_all()
-        infra.stop()
-        infra.wait()
+        #infra.disconnect_all()
+        #infra.stop()
+        #infra.wait()
         print("Print availability vector: a = {}".format(a))
-
         # Sensing & Collision detection
-        i = 0
-        infra.start_sense()
-        for ch in channel_list:
-            # Scan energy for collision detection
-            if sense_queue.count():
-                val2 = sense_queue.delete_head().to_string()
-                db_vector = scipy.fromstring(val, dtype=scipy.float32)
-                mean_db = calc_mean_energy(db_vector)
-                channel_state = utils.detect_collision(mean_db, channel_list[i], threshold[i], busy_tone_channels[i])
-                if (channel_state==2):
-                    print("Busy Tone")
-                    #transmissions.transmit_busy_tone(busy_tone_channels[i], bandwidth)
-                    pass
-            i += 1
-        infra.disconnect_all()
-        infra.stop()
-        infra.wait()
-
+        #i = 0
+        #infra.start_sense()
+        #for ch in channel_list:
+        #    # Scan energy for collision detection
+        #    if sense_queue.count():
+        #        val2 = sense_queue.delete_head().to_string()
+        #        db_vector = scipy.fromstring(val, dtype=scipy.float32)
+        #        mean_db = calc_mean_energy(db_vector)
+        #        channel_state = utils.detect_collision(mean_db, channel_list[i], threshold[i], busy_tone_channels[i])
+        #        if (channel_state==2):
+        #            print("Busy Tone")
+        #            #transmissions.transmit_busy_tone(busy_tone_channels[i], bandwidth)
+        #            pass
+        #    i += 1
+        #infra.disconnect_all()
+        #infra.stop()
+        #infra.wait()
 
 
 
