@@ -7,12 +7,15 @@ from argparse import ArgumentParser
 
 import scipy
 from gnuradio import gr
+from gnuradio import uhd
+from gnuradio import blocks
 
 from sense.spectrum_sense import spectrum_sense
 from sense.pu import detect_pu
 from comm.tx import tx_path
 from comm.rx import rx_path
 from utils import utils
+from utils import sweeper
 
 
 class infrastructure(gr.top_block):
@@ -32,27 +35,43 @@ class infrastructure(gr.top_block):
         # Blocks
         ##################################################
 
-        self.sensepath = spectrum_sense(samp_rate, freq, bandwidth)
-        self.detect_pu = detect_pu(freq, bandwidth, samp_rate, code1)
+        self.u = uhd.usrp_source(
+        	",".join(("", "")),
+        	uhd.stream_args(
+        		cpu_format="fc32",
+        		channels=range(1),
+        	),
+        )
+        self.u.set_samp_rate(samp_rate)
+        self.u.set_center_freq(freq, 0)
+        self.u.set_gain(60, 0)
+        self.u.set_bandwidth(bandwidth, 0)
+
+        self.message_strobe = blocks.message_strobe(pmt.cons(pmt.intern("freq"),
+                                                    pmt.to_pmt(600e6)), 1000)
+
+        self.sweeper = sweeper()
+        self.sensepath = spectrum_sense()
+        self.detect_pu = detect_pu(code1)
         #txpath = tx_path(samp_rate, freq, code2)
         #self.rxpath = rx_path(samp_rate, freq, code1)
 
+        ##################################################
+        # Connections
+        ##################################################
+        self.msg_connect((self.message_strobe, 'strobe'), (self.sweeper, 'clock'))
+        self.msg_connect((self.sweeper, 'sync'), (self.u, 'command'))
+        self.connect(self.u, self.detect_pu)
+        self.connect(self.u, self.sensepath)
 
-    def start_detect_pu(self):
-        self.connect(self.detect_pu)
-        gr.top_block.start(self)
-
-    def start_sense(self):
-        self.connect(self.sensepath)
-        gr.top_block.start(self)
 
     def get_sensepath_sink_queue(self):
         if self.sensepath:
-            return self.sensepath.sink_queue
+            return self.sensepath.sense_sink_queue
 
     def get_detectpu_sink_queue(self):
         if self.detect_pu:
-            return self.detect_pu.sink_queue
+            return self.detect_pu.pu_sink_queue
 
     def get_ss(self):
         return self.sensepath
@@ -138,70 +157,65 @@ if __name__ == '__main__':
 
     infra = infrastructure(int(general('samp_rate')), float(general('freq')), float(general('bandwidth')), comm('code1'), comm('code2'))
 
-    sense_queue = infra.get_sensepath_sink_queue()
-    detect_pu_queue = infra.get_detectpu_sink_queue()
+    # Get message queue of detect_pu
+    detect_pu_q = infra.get_detectpu_sink_queue()
+    # Get message queue of sensing
+    sense_q = infra.get_sensepath_sink_queue()
 
-    channel_list = [600e6, 825e6, 1.2e9, 2.4e9]
+    # Channel to use
+    yychannel_list = [600e6, 825e6, 1.2e9, 2.4e9]
     print("The specified channels are: {}".format(channel_list))
+
+    # Control channels for busy tones
     busy_tone_channels = [520e6,540e6,560e6,580e6]
+
+    # Energy threshold for each channel
     thresholds = [-16,-18,-19,-30]
 
+    # Node u vector
     u = [0]*len(channel_list)
-    u_vectors = [ [0]*len(channel_list) ] * (int(general('nodes_no'))-1)
     print("U = {}".format(u))
+
+    # u vectors of the other nodes
+    u_vectors = [ [0]*len(channel_list) ] * (int(general('nodes_no'))-1)
     print("U vector of others = {}".format(u_vectors))
 
     # Calculate a = []
+    # Node a vector
     a = [0]*len(channel_list)
     print("A = {}".format(a))
 
-    port = pmt.intern("command")
-    infra.start_detect_pu()
-    command = pmt.cons(pmt.intern("freq"), pmt.to_pmt(825e6))
-    #infra.detect_pu.uhd_usrp_source_0.to_basic_block()._post(port, command)
-    infra.detect_pu.uhd_usrp_source_0.set_center_freq(825e6, 0)
-    while 1:
-    	i = 0
-        # Detection of Primary Users
-        #infra.start_detect_pu()
-        for ch in channel_list:
-	    detect_pu_queue.flush()
-	    command = pmt.cons(pmt.intern("freq"), pmt.to_pmt(ch))
-            infra.detect_pu.uhd_usrp_source_0.to_basic_block()._post(port, command)
-            #infra.detect_pu.uhd_usrp_source_0.set_center_freq(ch, 0)
-	    time.sleep(0.2)
-	    usrp_freq = infra.detect_pu.uhd_usrp_source_0.get_center_freq()
-	    print("USRP in freq: {}".format(usrp_freq))
-            # Scan for PUs
-            if detect_pu_queue.count():
-		print("Queue has total of {} items".format(detect_pu_queue.count()))
-                val = detect_pu_queue.delete_head().to_string()
-		print("Queue in channel: {} has {}".format(usrp_freq, val))
-		if val:
-                    a[i] = 1
-            i += 1
-        #infra.disconnect_all()
-        #infra.stop()
-        #infra.wait()
-        print("Print availability vector: a = {}".format(a))
-        # Sensing & Collision detection
-        #i = 0
-        #infra.start_sense()
-        #for ch in channel_list:
-        #    # Scan energy for collision detection
-        #    if sense_queue.count():
-        #        val2 = sense_queue.delete_head().to_string()
-        #        db_vector = scipy.fromstring(val, dtype=scipy.float32)
-        #        mean_db = calc_mean_energy(db_vector)
-        #        channel_state = utils.detect_collision(mean_db, channel_list[i], threshold[i], busy_tone_channels[i])
-        #        if (channel_state==2):
-        #            print("Busy Tone")
-        #            #transmissions.transmit_busy_tone(busy_tone_channels[i], bandwidth)
-        #            pass
-        #    i += 1
-        #infra.disconnect_all()
-        #infra.stop()
-        #infra.wait()
+    infra.start()
+
+    # Detection of Primary Users
+    detect_pu_q.flush()
+    sense_q.flush()
+    #infra.detect_pu.uhd_usrp_source_0.set_center_freq(ch, 0)
+    usrp_freq = infra.u.get_center_freq()
+    print("USRP in freq: {}".format(usrp_freq))
+
+    # Scan for PUs
+    if detect_pu_q.count():
+        print("Queue has total of {} items".format(detect_pu_queue.count()))
+        val = detect_pu_queue.delete_head().to_string()
+        print("Queue in channel: {} has {}".format(usrp_freq, val))
+        if val:
+            i = channel_list.index(usrp_freq)
+            a[i] = 1
+        detect_pu.q.flush()
+
+    print("Print availability vector: a = {}".format(a))
+    # Sensing & Collision detection
+    # Scan energy for collision detection
+    if sense_queue.count():
+        val2 = sense_queue.delete_head().to_string()
+        db_vector = scipy.fromstring(val, dtype=scipy.float32)
+        mean_db = calc_mean_energy(db_vector)
+        channel_state = utils.detect_collision(mean_db, channel_list[i], threshold[i], busy_tone_channels[i])
+        if (channel_state==2):
+            print("Busy Tone")
+            #transmissions.transmit_busy_tone(busy_tone_channels[i], bandwidth)
+            pass
 
 
 
