@@ -50,7 +50,7 @@ class infrastructure(gr.top_block):
         self.message_strobe = blocks.message_strobe(pmt.cons(pmt.intern("freq"),
                                                     pmt.to_pmt(600e6)), 1000)
 
-        self.sweeper = sweeper()
+        self.sweeper = sweeper.frequency_sweeper()
         self.sensepath = spectrum_sense()
         self.detect_pu = detect_pu(code1)
         #txpath = tx_path(samp_rate, freq, code2)
@@ -163,7 +163,7 @@ if __name__ == '__main__':
     sense_q = infra.get_sensepath_sink_queue()
 
     # Channel to use
-    yychannel_list = [600e6, 825e6, 1.2e9, 2.4e9]
+    channel_list = [600e6, 825e6, 1.2e9, 2.4e9]
     print("The specified channels are: {}".format(channel_list))
 
     # Control channels for busy tones
@@ -191,8 +191,9 @@ if __name__ == '__main__':
     detect_pu_q.flush()
     sense_q.flush()
     #infra.detect_pu.uhd_usrp_source_0.set_center_freq(ch, 0)
-    usrp_freq = infra.u.get_center_freq()
-    print("USRP in freq: {}".format(usrp_freq))
+    while 1:
+        usrp_freq = infra.u.get_center_freq()
+        print("USRP in freq: {}".format(usrp_freq))
 
     # Scan for PUs
     if detect_pu_q.count():
@@ -207,7 +208,7 @@ if __name__ == '__main__':
     print("Print availability vector: a = {}".format(a))
     # Sensing & Collision detection
     # Scan energy for collision detection
-    if sense_queue.count():
+    if sense_q.count():
         val2 = sense_queue.delete_head().to_string()
         db_vector = scipy.fromstring(val, dtype=scipy.float32)
         mean_db = calc_mean_energy(db_vector)

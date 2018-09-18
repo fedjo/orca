@@ -16,10 +16,10 @@ class frequency_sweeper(gr.sync_block):
         self.ch_list = channel_list
         self.ch_len = len(channel_list)
         self.ch_index = 0
-        self.freq = self.ch_list[ch_index]
+        self.freq = self.ch_list[self.ch_index]
 
     def handler(self, pdu):
         self.message_port_pub(pmt.intern('sync'), pmt.cons(pmt.intern("freq"), pmt.to_pmt(self.freq)))
-        self.ch_index = (self.ch_index + 1) % ch_len
+        self.ch_index = (self.ch_index + 1) % self.ch_len
         self.freq = self.ch_list[self.ch_index]
 
