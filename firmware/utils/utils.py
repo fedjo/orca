@@ -4,6 +4,14 @@ Utility functions
 """
 from operator import add
 
+
+def get_ch_index(ch):
+    chlist = [600e6, 825e6, 1.2e9, 2.4e9]
+    for c in chlist:
+        if c == ch:
+            return chlist.index(c)
+
+
 def calc_mean_energy(vector):
     avg = []
     n = int(len(vector)/1024)
@@ -54,7 +62,7 @@ def detect_collision(avg, c_freq, threshold, b_freq):
     if (avg<-43):
         print "EMPTY CHANNEL"
         return 0
-    elif (avg>treshold-1) and (avg<threshold+1):
+    elif (avg>threshold-1) and (avg<threshold+1):
         print "NO COLLISIONS"
         return 1
     else:
