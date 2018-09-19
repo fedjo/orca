@@ -8,7 +8,7 @@ from operator import add
 def get_ch_index(ch):
     chlist = [600e6, 825e6, 1.2e9, 2.4e9]
     for c in chlist:
-        if c == ch:
+        if (-1 <= ch - c <= 1):
             return chlist.index(c)
 
 
