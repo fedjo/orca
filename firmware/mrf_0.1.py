@@ -194,7 +194,7 @@ if __name__ == '__main__':
         #infra.detect_pu.uhd_usrp_source_0.set_center_freq(ch, 0)
         usrp_freq = infra.u.get_center_freq()
         print("USRP in freq: {}".format(usrp_freq))
-        i = channel_list.index(usrp_freq)
+        i = utils.get_ch_index(usrp_freq)
 
         # Scan for PUs
         if detect_pu_q.count():
@@ -202,13 +202,13 @@ if __name__ == '__main__':
             val = detect_pu_q.delete_head().to_string()
             if val:
                 a[i] = 1
-            detect_pu.q.flush()
+            detect_pu_q.flush()
 
         print("Print availability vector: a = {}".format(a))
         # Sensing & Collision detection
         # Scan energy for collision detection
         if (sense_q.count() and a[i] == 0):
-            print("Sense Queue in channel: {} has total of: {} items".format(usrp_freq, sense_pu_q.count()))
+            print("Sense Queue in channel: {} has total of: {} items".format(usrp_freq, sense_q.count()))
             val2 = sense_q.delete_head().to_string()
             db_vector = scipy.fromstring(val2, dtype=scipy.float32)
             print("Queue  has {}".format(db_vector))
@@ -238,4 +238,4 @@ if __name__ == '__main__':
         prize = 5
         #c = utils.cost(u_vector, busy_tone_channels, penalty, prize)
 
-        time.sleep(0.2)
+        #time.sleep(0.2)
