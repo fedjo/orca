@@ -48,7 +48,7 @@ class infrastructure(gr.top_block):
         self.u.set_bandwidth(bandwidth, 0)
 
         self.message_strobe = blocks.message_strobe(pmt.cons(pmt.intern("freq"),
-                                                    pmt.to_pmt(600e6)), 1000)
+                                                    pmt.to_pmt(600e6)), 2000)
 
         self.sweeper = sweeper.frequency_sweeper()
         self.sensepath = spectrum_sense()
@@ -187,48 +187,50 @@ if __name__ == '__main__':
 
     infra.start()
 
-    # Detection of Primary Users
-    detect_pu_q.flush()
-    sense_q.flush()
-    #infra.detect_pu.uhd_usrp_source_0.set_center_freq(ch, 0)
     while 1:
+        # Detection of Primary Users
+        detect_pu_q.flush()
+        sense_q.flush()
+        #infra.detect_pu.uhd_usrp_source_0.set_center_freq(ch, 0)
         usrp_freq = infra.u.get_center_freq()
         print("USRP in freq: {}".format(usrp_freq))
+        i = channel_list.index(usrp_freq)
 
-    # Scan for PUs
-    if detect_pu_q.count():
-        print("Queue has total of {} items".format(detect_pu_queue.count()))
-        val = detect_pu_queue.delete_head().to_string()
-        print("Queue in channel: {} has {}".format(usrp_freq, val))
-        if val:
-            i = channel_list.index(usrp_freq)
-            a[i] = 1
-        detect_pu.q.flush()
+        # Scan for PUs
+        if detect_pu_q.count() == 0:
+            print("Queue in channel: {} has total of: {} items".format(usrp_freq, detect_pu_queue.count()))
+            val = detect_pu_queue.delete_head().to_string()
+            print("Queue  has {}".format(val))
+            if val:
+                a[i] = 1
+            detect_pu.q.flush()
 
-    print("Print availability vector: a = {}".format(a))
-    # Sensing & Collision detection
-    # Scan energy for collision detection
-    if sense_q.count():
-        val2 = sense_queue.delete_head().to_string()
-        db_vector = scipy.fromstring(val, dtype=scipy.float32)
-        mean_db = calc_mean_energy(db_vector)
-        channel_state = utils.detect_collision(mean_db, channel_list[i], threshold[i], busy_tone_channels[i])
-        if (channel_state==2):
-            print("Busy Tone")
-            #transmissions.transmit_busy_tone(busy_tone_channels[i], bandwidth)
-            pass
-
+        print("Print availability vector: a = {}".format(a))
+        # Sensing & Collision detection
+        # Scan energy for collision detection
+        if (sense_q.count() and a[i] == 0):
+            val2 = sense_queue.delete_head().to_string()
+            db_vector = scipy.fromstring(val, dtype=scipy.float32)
+            mean_db = calc_mean_energy(db_vector)
+            channel_state = utils.detect_collision(mean_db, channel_list[i], threshold[i], busy_tone_channels[i])
+            if (channel_state==2):
+                print("Busy Tone")
+                #transmissions.transmit_busy_tone(busy_tone_channels[i], bandwidth)
+                pass
 
 
-    # TODO
-    # Calculate n = [] from U vectors previously received
-    n = utils.calc_vectorN(u_vectors)
-    print("N = {}".format(n))
 
-   # send busy tones
-   # for i in range(0, channel_list):
+        # TODO
+        # Calculate n = [] from U vectors previously received
+        n = utils.calc_vectorN(u_vectors)
+        print("N = {}".format(n))
 
-    # evaluation of cost function
-    penalty = -5
-    prize = 5
-    #c = utils.cost(u_vector, busy_tone_channels, penalty, prize)
+       # send busy tones
+       # for i in range(0, channel_list):
+
+        # evaluation of cost function
+        penalty = -5
+        prize = 5
+        #c = utils.cost(u_vector, busy_tone_channels, penalty, prize)
+
+        time.sleep(2)
