@@ -15,7 +15,7 @@ from sense.pu import detect_pu
 from comm.tx import tx_path
 from comm.rx import rx_path
 from utils import utils
-from utils import sweeper
+from utils import ublocks
 
 
 class infrastructure(gr.top_block):
@@ -50,7 +50,8 @@ class infrastructure(gr.top_block):
         self.message_strobe = blocks.message_strobe(pmt.cons(pmt.intern("freq"),
                                                     pmt.to_pmt(600e6)), 2000)
 
-        self.sweeper = sweeper.frequency_sweeper()
+        self.sweeper = ublocks.frequency_sweeper()
+        self.tag_print = ublocks.sample_separator()
         self.sensepath = spectrum_sense()
         self.detect_pu = detect_pu(code1)
         #txpath = tx_path(samp_rate, freq, code2)
@@ -62,7 +63,8 @@ class infrastructure(gr.top_block):
         self.msg_connect((self.message_strobe, 'strobe'), (self.sweeper, 'clock'))
         self.msg_connect((self.sweeper, 'sync'), (self.u, 'command'))
         self.connect(self.u, self.detect_pu)
-        self.connect(self.u, self.sensepath)
+        self.connect(self.u, self.tag_print)
+        self.connect(self.tag_print, self.sensepath)
 
 
     def get_sensepath_sink_queue(self):
