@@ -34,13 +34,15 @@ class sample_separator(gr.sync_block):
             out_sig=[numpy.float32]
         )
 
-        def work(self, input_items, output_items):
-            in0 = input_items[0]
-            out = output_items[0]
-            # Get and print tags found on input_stream
-            tags = get_tags_in_window(input_items[0], 0, len(input_items[0]))
-            print("Tags found on USRP output_stream: {}".format(tags))
-            #
-            out[:] = in0
-            return len(output_items[0])
+    def work(self, input_items, output_items):
+        in0 = input_items[0]
+        out = output_items[0]
+        # Get and print tags found on input_stream
+        tags = self.get_tags_in_window(0, 0, len(input_items[0]))
+        for t in tags:
+            print("Tag with KEY: {}, VALUE: {}".format(t.key, t.value))
+        #
+        out[:] = in0
+        out[0] = out[1]
+        return len(output_items[0])
 

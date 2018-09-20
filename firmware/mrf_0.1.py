@@ -52,6 +52,7 @@ class infrastructure(gr.top_block):
 
         self.sweeper = ublocks.frequency_sweeper()
         self.tag_print = ublocks.sample_separator()
+        self.tag_print2 = ublocks.sample_separator()
         self.sensepath = spectrum_sense()
         self.detect_pu = detect_pu(code1)
         #txpath = tx_path(samp_rate, freq, code2)
@@ -62,7 +63,8 @@ class infrastructure(gr.top_block):
         ##################################################
         self.msg_connect((self.message_strobe, 'strobe'), (self.sweeper, 'clock'))
         self.msg_connect((self.sweeper, 'sync'), (self.u, 'command'))
-        self.connect(self.u, self.detect_pu)
+        self.connect(self.u, self.tag_print2)
+        self.connect(self.tag_print2, self.detect_pu)
         self.connect(self.u, self.tag_print)
         self.connect(self.tag_print, self.sensepath)
 
