@@ -234,6 +234,10 @@ if __name__ == '__main__':
         my_pudata = infra.detect_pu.blocks_probe_signal_0.level()
         print("PU DETECT data from probe signal: {}".format(my_pudata))
 
+        # Probe signal Vector
+        my_vpudata = infra.detect_pu.blocks_probe_signal_vector_0.level()
+        print("Sense Data from probe signal vector: {}".format(my_vpudata))
+
 
 
         print("Print availability vector: a = {}".format(a))
@@ -261,6 +265,10 @@ if __name__ == '__main__':
         # Probe signal
         my_data = infra.sensepath.blocks_probe_signal_0.level()
         print("Sense Data from probe signal: {}".format(my_data))
+
+        # Probe signal Vector
+        my_vdata = infra.sensepath.blocks_probe_signal_vector_0.level()
+        print("Sense Data from probe signal vector: {}".format(my_vdata))
 
 
         # TODO
