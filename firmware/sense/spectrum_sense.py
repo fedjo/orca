@@ -55,7 +55,7 @@ class spectrum_sense(gr.hier_block2):
         #self.connect((self.blocks_nlog10_ff_0, 0), (self.blocks_file_sink_0, 0))
         self.connect((self.blocks_nlog10_ff_0, 0), (self.blocks_message_sink_0, 0))
         self.connect((self.blocks_nlog10_ff_0, 0), (self.blocks_probe_signal_0, 0))
-        self.connect((self.blks2_packet_decoder_0, 0), (self.blocks_probe_signal_vector_0, 0))
+        self.connect((self.blocks_nlog10_ff_0, 0), (self.blocks_probe_signal_vector_0, 0))
 
         self.connect((self.blocks_complex_to_mag_squared_0, 0), (self.blocks_nlog10_ff_0, 0))
         self.connect((self.blocks_stream_to_vector_0, 0), (self.fft_vxx_0, 0))
