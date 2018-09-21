@@ -32,6 +32,7 @@ class detect_pu(gr.hier_block2):
         # Variables
         ##################################################
         self.code1 = code1 = '010110011011101100010101011111101001001110001011010001101010001'
+        self.probe_value = probe_value = 0
 
         ##################################################
         # Message Queues
@@ -77,3 +78,25 @@ class detect_pu(gr.hier_block2):
 
         self.connect((self.digital_dxpsk_demod_1, 0), (self.blks2_packet_decoder_0, 0))
         self.connect(self, (self.digital_dxpsk_demod_1, 0))
+
+
+
+        def _probe_vector_value_probe():
+            while True:
+                val = self.blocks_probe_signal_0.level()
+                try:
+                    self.set_probe_value(val)
+                except AttributeError:
+                    pass
+                time.sleep(1.0/10000)
+        _probe_vector_value_thread = threading.Thread(target=_probe_vector_value_probe)
+        _probe_vector_value_thread.daemon = True
+        _probe_vector_value_thread.start()
+
+
+    def get_probe_value(self):
+        return self.probe_value
+
+
+    def set_probe_value(self, probe_value):
+        self.probe_value = probe_value
