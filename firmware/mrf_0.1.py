@@ -266,16 +266,12 @@ if __name__ == '__main__':
         my_data = infra.sensepath.blocks_probe_signal_0.level()
         print("Sense Data from probe signal: {}".format(my_data))
 
-        # Probe signal Vector
-        my_vdata = infra.sensepath.blocks_probe_signal_vector_0.level()
-        print("Sense Data from probe signal vector: {}".format(my_vdata))
+        # Function Probe from Probe signal
+        print("Function Probe : {}".format(infra.sensepath.get_probe_value()))
 
-        # Function Probe from Vector
-        print("Function Probe from vector: {}".format(infra.sensepath.get_probe_vector_value()))
-
-        # Probe Rate
-        my_rdata = infra.sensepath.blocks_probe_rate_0.level()
-        print("Sense Data from probe signal rate: {}".format(my_rdata))
+        # Probe Avg Mag^2
+        my_avgdata = infra.sensepath.analog_probe_avg_mag_sqrd_x_0.level()
+        print("Sense Data from probe avg mag^2: {}".format(my_avgdata))
 
 
 
