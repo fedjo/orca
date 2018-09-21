@@ -218,14 +218,22 @@ if __name__ == '__main__':
         i = utils.get_ch_index(usrp_freq)
 
         # Scan for PUs
-        #if detect_pu_q.count():
-        #    print("PU Queue in channel: {} has total of: {} items".format(usrp_freq, detect_pu_q.count()))
-        #    val = detect_pu_q.delete_head().to_string()
-        #    if val:
-        #        a[i] = 1
-        #    detect_pu_q.flush()
 
-        #print("Print availability vector: a = {}".format(a))
+        # Message Sink
+        if detect_pu_q.count():
+            print("PU Queue in channel: {} has total of: {} items".format(usrp_freq, detect_pu_q.count()))
+            val = detect_pu_q.delete_head().to_string()
+            if val:
+                a[i] = 1
+            detect_pu_q.flush()
+
+        # Probe Signal
+        my_pudata = infra.detect_pu.probe_signal_0.level()
+        print("PU DETECT data from probe signal: {}".format(my_pudata))
+
+
+
+        print("Print availability vector: a = {}".format(a))
 
         # Sensing & Collision detection
         # Scan energy for collision detection
@@ -249,7 +257,7 @@ if __name__ == '__main__':
 
         # Probe signal
         my_data = infra.sensepath.probe_signal_0.level()
-        print("Data from probe signal: {}".format(my_data))
+        print("Sense Data from probe signal: {}".format(my_data))
 
 
         # TODO
