@@ -18,6 +18,23 @@ from utils import utils
 from utils import ublocks
 
 
+class FreqSweeper(Thread):
+    def __init__(self, chlist, usrp):
+        Thread.__init__(self)
+        self.chlist = chlist
+        self.chidx = 0
+        self.usrp = usrp
+
+
+
+    def run(self):
+        while 1:
+            self.usrp.set_center_freq(self.chlist[self.chidx], 0)
+            time.sleep(0.3)
+            print("USRP listening in: {}".format(self.usrp.get_center_freq()))
+            self.chidx = (self.chidx + 1) % len(self.chlist)
+
+
 class infrastructure(gr.top_block):
     def __init__(self, samp_rate, freq, bandwidth, code1, code2):
         gr.top_block.__init__(self, "Infrastructure")
@@ -201,16 +218,19 @@ if __name__ == '__main__':
         i = utils.get_ch_index(usrp_freq)
 
         # Scan for PUs
-        if detect_pu_q.count():
-            print("PU Queue in channel: {} has total of: {} items".format(usrp_freq, detect_pu_q.count()))
-            val = detect_pu_q.delete_head().to_string()
-            if val:
-                a[i] = 1
-            detect_pu_q.flush()
+        #if detect_pu_q.count():
+        #    print("PU Queue in channel: {} has total of: {} items".format(usrp_freq, detect_pu_q.count()))
+        #    val = detect_pu_q.delete_head().to_string()
+        #    if val:
+        #        a[i] = 1
+        #    detect_pu_q.flush()
 
-        print("Print availability vector: a = {}".format(a))
+        #print("Print availability vector: a = {}".format(a))
+
         # Sensing & Collision detection
         # Scan energy for collision detection
+
+        # Message Sink
         if (sense_q.count() and a[i] == 0):
             print("Sense Queue in channel: {} has total of: {} items".format(usrp_freq, sense_q.count()))
             val2 = sense_q.delete_head().to_string()
@@ -227,6 +247,9 @@ if __name__ == '__main__':
                 pass
             sense_q.flush()
 
+        # Probe signal
+        my_data = infra.sensepath.probe_signal_0.level()
+        print("Data from probe signal: {}".format(my_data))
 
 
         # TODO

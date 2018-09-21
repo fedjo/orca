@@ -52,9 +52,6 @@ class detect_pu(gr.hier_block2):
         	verbose=False,
         	log=False
         )
-        #self.blocks_file_sink_0 = blocks.file_sink(gr.sizeof_char*1, 'output.out', True)
-        #self.blocks_file_sink_0.set_unbuffered(True)
-        self.blocks_message_sink_0 = blocks.message_sink(gr.sizeof_char*1, self.pu_sink_queue, True)
         self.blks2_packet_decoder_0 = grc_blks2.packet_demod_b(grc_blks2.packet_decoder(
         		access_code=code1,
         		threshold=-1,
@@ -62,11 +59,19 @@ class detect_pu(gr.hier_block2):
         	),
         )
 
+        ## Sinks ##
+        #
+        #self.blocks_file_sink_0 = blocks.file_sink(gr.sizeof_char*1, 'output.out', True)
+        #self.blocks_file_sink_0.set_unbuffered(True)
+        self.blocks_message_sink_0 = blocks.message_sink(gr.sizeof_char*1, self.pu_sink_queue, True)
+        self.blocks_probe_signal_0 = blocks.probe_signal_f()
+
         ##################################################
         # Connections
         ##################################################
         #self.connect((self.blks2_packet_decoder_0, 0), (self.blocks_file_sink_0, 0))
         self.connect((self.blks2_packet_decoder_0, 0), (self.blocks_message_sink_0, 0))
+        self.connect((self.blks2_packet_decoder_0, 0), (self.blocks_probe_signal_0, 0))
+
         self.connect((self.digital_dxpsk_demod_1, 0), (self.blks2_packet_decoder_0, 0))
-        #self.connect((self.uhd_usrp_source_0, 0), (self.digital_dxpsk_demod_1, 0))
         self.connect(self, (self.digital_dxpsk_demod_1, 0))
