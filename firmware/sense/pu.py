@@ -64,7 +64,7 @@ class detect_pu(gr.hier_block2):
         #self.blocks_file_sink_0 = blocks.file_sink(gr.sizeof_char*1, 'output.out', True)
         #self.blocks_file_sink_0.set_unbuffered(True)
         self.blocks_message_sink_0 = blocks.message_sink(gr.sizeof_char*1, self.pu_sink_queue, True)
-        self.blocks_probe_signal_0 = blocks.probe_signal_f()
+        self.blocks_probe_signal_0 = blocks.probe_signal_b()
 
         ##################################################
         # Connections

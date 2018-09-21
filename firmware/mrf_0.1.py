@@ -2,6 +2,7 @@ import os
 import sys
 import time
 import pmt
+import threading
 import ConfigParser
 from argparse import ArgumentParser
 
@@ -18,7 +19,7 @@ from utils import utils
 from utils import ublocks
 
 
-class FreqSweeper(Thread):
+class FreqSweeper(threading.Thread):
     def __init__(self, chlist, usrp):
         Thread.__init__(self)
         self.chlist = chlist
