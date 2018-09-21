@@ -50,6 +50,7 @@ class spectrum_sense(gr.hier_block2):
         self.blocks_message_sink_0 = blocks.message_sink(gr.sizeof_float*1, self.sense_sink_queue, True)
         self.blocks_probe_signal_0 = blocks.probe_signal_f()
         self.blocks_probe_signal_vector_0 = blocks.probe_signal_vf(1)
+        self.blocks_probe_rate_0 = blocks.probe_rate(gr.sizeof_float*1, 100.0, 0.15)
 
         ##################################################
         # Connections
@@ -58,6 +59,7 @@ class spectrum_sense(gr.hier_block2):
         self.connect((self.blocks_nlog10_ff_0, 0), (self.blocks_message_sink_0, 0))
         self.connect((self.blocks_nlog10_ff_0, 0), (self.blocks_probe_signal_0, 0))
         self.connect((self.blocks_nlog10_ff_0, 0), (self.blocks_probe_signal_vector_0, 0))
+        self.connect((self.blocks_nlog10_ff_0, 0), (self.blocks_probe_rate_0, 0))
 
         self.connect((self.blocks_complex_to_mag_squared_0, 0), (self.blocks_nlog10_ff_0, 0))
         self.connect((self.blocks_stream_to_vector_0, 0), (self.fft_vxx_0, 0))
@@ -77,4 +79,12 @@ class spectrum_sense(gr.hier_block2):
         _probe_vector_value_thread = threading.Thread(target=_probe_vector_value_probe)
         _probe_vector_value_thread.daemon = True
         _probe_vector_value_thread.start()
+
+
+        def get_probe_vector_value(self):
+            return self.probe_vector_value
+
+
+        def set_probe_vector_value(self, probe_vector_value):
+            self.probe_vector_value = probe_vector_value
 
