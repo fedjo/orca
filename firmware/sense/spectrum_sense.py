@@ -73,16 +73,16 @@ class spectrum_sense(gr.hier_block2):
                     self.set_probe_value(val)
                 except AttributeError:
                     pass
-                time.sleep(1.0/10)
+                time.sleep(1.0/100000)
         _probe_vector_value_thread = threading.Thread(target=_probe_vector_value_probe)
         _probe_vector_value_thread.daemon = True
         _probe_vector_value_thread.start()
 
 
-        def get_probe_value(self):
-            return self.probe_value
+    def get_probe_value(self):
+        return self.probe_value
 
 
-        def set_probe_value(self, probe_value):
-            self.probe_value = probe_value
+    def set_probe_value(self, probe_value):
+        self.probe_value = probe_value
 
