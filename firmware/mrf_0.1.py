@@ -231,7 +231,7 @@ if __name__ == '__main__':
             detect_pu_q.flush()
 
         # Probe Signal
-        my_pudata = infra.detect_pu.probe_signal_0.level()
+        my_pudata = infra.detect_pu.blocks_probe_signal_0.level()
         print("PU DETECT data from probe signal: {}".format(my_pudata))
 
 
@@ -259,7 +259,7 @@ if __name__ == '__main__':
             sense_q.flush()
 
         # Probe signal
-        my_data = infra.sensepath.probe_signal_0.level()
+        my_data = infra.sensepath.blocks_probe_signal_0.level()
         print("Sense Data from probe signal: {}".format(my_data))
 
 
