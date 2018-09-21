@@ -47,7 +47,7 @@ class spectrum_sense(gr.hier_block2):
         #self.blocks_file_sink_0.set_unbuffered(False)
         self.blocks_message_sink_0 = blocks.message_sink(gr.sizeof_float*1, self.sense_sink_queue, True)
         self.blocks_probe_signal_0 = blocks.probe_signal_f()
-        self.blocks_probe_signal_vector_0 = blocks.probe_signal_vf()
+        self.blocks_probe_signal_vector_0 = blocks.probe_signal_vf(1)
 
         ##################################################
         # Connections
