@@ -81,10 +81,12 @@ class infrastructure(gr.top_block):
         ##################################################
         self.msg_connect((self.message_strobe, 'strobe'), (self.sweeper, 'clock'))
         self.msg_connect((self.sweeper, 'sync'), (self.u, 'command'))
-        self.connect(self.u, self.tag_print2)
-        self.connect(self.tag_print2, self.detect_pu)
-        self.connect(self.u, self.tag_print)
-        self.connect(self.tag_print, self.sensepath)
+        #self.connect(self.u, self.tag_print2)
+        #self.connect(self.tag_print2, self.detect_pu)
+        #self.connect(self.u, self.tag_print)
+        #self.connect(self.tag_print, self.sensepath)
+        self.connect(self.u, self.detect_pu)
+        self.connect(self.u, self.sensepath)
 
 
     def get_sensepath_sink_queue(self):
