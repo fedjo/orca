@@ -2,6 +2,7 @@ import os
 import sys
 import time
 import pmt
+import math
 import threading
 import ConfigParser
 from argparse import ArgumentParser
@@ -234,11 +235,6 @@ if __name__ == '__main__':
         my_pudata = infra.detect_pu.blocks_probe_signal_0.level()
         print("PU DETECT data from probe signal: {}".format(my_pudata))
 
-        # Probe signal Vector
-        my_vpudata = infra.detect_pu.blocks_probe_signal_vector_0.level()
-        print("Sense Data from probe signal vector: {}".format(my_vpudata))
-
-
 
         print("Print availability vector: a = {}".format(a))
 
@@ -253,8 +249,6 @@ if __name__ == '__main__':
             print("Queue  has {}".format(db_vector))
             mean_db = utils.calc_mean_energy(db_vector)
             print("Mean db {}".format(mean_db))
-            with open('data.out', 'aw+') as f:
-                f.write('\t\t\t\t'*i + '{}'.format(mean_db) + '\n')
             channel_state = utils.detect_collision(mean_db, channel_list[i], thresholds[i], busy_tone_channels[i])
             if (channel_state==2):
                 print("Busy Tone")
@@ -270,8 +264,19 @@ if __name__ == '__main__':
         print("Function Probe : {}".format(infra.sensepath.get_probe_value()))
 
         # Probe Avg Mag^2
-        my_avgdata = infra.sensepath.analog_probe_avg_mag_sqrd_x_0.level()
-        print("Sense Data from probe avg mag^2: {}".format(my_avgdata))
+        tmp_avgdata = infra.sensepath.analog_probe_avg_mag_sqrd_x_0.level(dd)
+        if tmp_avgdata:
+            avgdata = math.log10(infra.sensepath.analog_probe_avg_mag_sqrd_x_0.level()) * 10
+        else:
+            avgdata = tmp_avgdata
+        print("Sense Data from probe avg mag^2: {}".format((avgdata))
+        channel_state = utils.detect_collision(avgdata, channel_list[i], thresholds[i], busy_tone_channels[i])
+        if (channel_state==2):
+            print("Busy Tone")
+            #transmissions.transmit_busy_tone(busy_tone_channels[i], bandwidth)
+            pass
+
+
 
 
 
@@ -288,4 +293,4 @@ if __name__ == '__main__':
         prize = 5
         #c = utils.cost(u_vector, busy_tone_channels, penalty, prize)
 
-        #time.sleep(0.2)
+        time.sleep(0.5)

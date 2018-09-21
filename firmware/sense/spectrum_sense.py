@@ -6,6 +6,7 @@
 ##################################################
 
 from gnuradio import blocks
+from gnuradio import analog
 from gnuradio import fft
 from gnuradio import gr
 from gnuradio import uhd
@@ -49,7 +50,7 @@ class spectrum_sense(gr.hier_block2):
         #self.blocks_file_sink_0.set_unbuffered(False)
         self.blocks_message_sink_0 = blocks.message_sink(gr.sizeof_float*1, self.sense_sink_queue, True)
         self.blocks_probe_signal_0 = blocks.probe_signal_f()
-        self.analog_probe_avg_mag_sqrd_x_0 = analog.probe_avg_mag_sqrd_c(0, 1)
+        self.analog_probe_avg_mag_sqrd_x_0 = analog.probe_avg_mag_sqrd_c(0, 0.01)
 
         ##################################################
         # Connections
@@ -73,7 +74,7 @@ class spectrum_sense(gr.hier_block2):
                     self.set_probe_value(val)
                 except AttributeError:
                     pass
-                time.sleep(1.0/100000)
+                time.sleep(1.0/100)
         _probe_vector_value_thread = threading.Thread(target=_probe_vector_value_probe)
         _probe_vector_value_thread.daemon = True
         _probe_vector_value_thread.start()
