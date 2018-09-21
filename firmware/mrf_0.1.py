@@ -270,6 +270,9 @@ if __name__ == '__main__':
         my_vdata = infra.sensepath.blocks_probe_signal_vector_0.level()
         print("Sense Data from probe signal vector: {}".format(my_vdata))
 
+        # Function Probe from Vector
+        print("Function Probe from vector: {}".format(infra.sensepath.probe_vector_value))
+
 
         # TODO
         # Calculate n = [] from U vectors previously received

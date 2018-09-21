@@ -26,6 +26,7 @@ class spectrum_sense(gr.hier_block2):
         ##################################################
         # Variables
         ##################################################
+        self.probe_vector_value = probe_vector_value = 0
 
         ##################################################
         # Message Queues
@@ -62,3 +63,17 @@ class spectrum_sense(gr.hier_block2):
         self.connect((self.blocks_vector_to_stream_0, 0), (self.blocks_complex_to_mag_squared_0, 0))
         self.connect((self.fft_vxx_0, 0), (self.blocks_vector_to_stream_0, 0))
         self.connect(self, (self.blocks_stream_to_vector_0, 0))
+
+
+        def _probe_vector_value_probe():
+            while True:
+                val = self.blocks_probe_signal_vector_0.level()
+                try:
+                    self.set_probe_vector_value(val)
+                except AttributeError:
+                    pass
+                time.sleep(1.0/10)
+        _probe_vector_value_thread = threading.Thread(target=_probe_vector_value_probe)
+        _probe_vector_value_thread.daemon = True
+        _probe_vector_value_thread.start()
+
