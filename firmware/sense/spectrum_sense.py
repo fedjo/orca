@@ -12,6 +12,7 @@ from gnuradio import uhd
 from gnuradio.fft import window
 from gnuradio.filter import firdes
 import time
+import threading
 
 
 class spectrum_sense(gr.hier_block2):
